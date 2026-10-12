@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Club Arena</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0b0e14;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+        h2 {
+            margin: 20px 0 5px 0;
+            font-size: 20px;
+            color: #00ffcc;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 13px;
+            color: #8892b0;
+            margin-bottom: 25px;
+        }
+        /* 3D Zal maydoni */
+        .stage {
+            perspective: 800px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .grid-room {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            transform: rotateX(25deg);
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+        .pc-card {
+            background: rgba(20, 27, 45, 0.85);
+            border-radius: 12px;
+            padding: 18px 10px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .pc-card:active {
+            transform: scale(0.95) translateZ(10px);
+        }
+        .free {
+            border-bottom: 4px solid #00ff66;
+            box-shadow: 0 5px 20px rgba(0, 255, 102, 0.2);
+        }
+        .busy {
+            border-bottom: 4px solid #ff3366;
+            opacity: 0.6;
+        }
+        .pc-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .pc-status {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .free .pc-status { color: #00ff66; }
+        .busy .pc-status { color: #ff3366; }
+        .zone-tag {
+            font-size: 10px;
+            background: #202b42;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a0aec0;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+    <h2>APEX 3D ZAL</h2>
+    <p>Jonli kompyuterlar xaritasi</p>
+
+    <div class="stage">
+        <div class="grid-room">
+            <div class="pc-card free" onclick="selectPC('01')">
+                <span class="zone-tag">STANDART</span>
+                <div class="pc-title">🖥 PC-01</div>
+                <div class="pc-status">BO'SH</div>
+            </div>
+            <div class="pc-card busy" onclick="selectPC('02')">
+                <span class="zone-tag">STANDART</span>
+                <div class="pc-title">🖥 PC-02</div>
+                <div class="pc-status">BAND</div>
+            </div>
+            <div class="pc-card free" onclick="selectPC('03')">
+                <span class="zone-tag">STANDART</span>
+                <div class="pc-title">🖥 PC-03</div>
+                <div class="pc-status">BO'SH</div>
+            </div>
+            <div class="pc-card free" onclick="selectPC('05')">
+                <span class="zone-tag">VIP ZONA</span>
+                <div class="pc-title">👑 PC-05</div>
+                <div class="pc-status">BO'SH</div>
+            </div>
+            <div class="pc-card busy" onclick="selectPC('06')">
+                <span class="zone-tag">VIP ZONA</span>
+                <div class="pc-title">👑 PC-06</div>
+                <div class="pc-status">BAND</div>
+            </div>
+            <div class="pc-card free" onclick="selectPC('08')">
+                <span class="zone-tag">BOOTCAMP</span>
+                <div class="pc-title">🔥 PC-08</div>
+                <div class="pc-status">BO'SH</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function selectPC(id) {
+            tg.showPopup({
+                title: 'Kompyuter #' + id,
+                message: 'Ushbu kompyuterni bron qilishni xohlaysizmi?',
+                buttons: [{type: 'ok', text: 'Tanlash'}]
+            }, function() {
+                tg.close();
+            });
+        }
+    </script>
+</body>
+</html>
