@@ -3,233 +3,553 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apex Cyber Arena | 3D Zal</title>
+    <title>Apex Cyber Arena | 3D Arena</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Three.js va OrbitControls kutubxonalari -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg-base: #080a10;
-            --card-bg: rgba(18, 24, 38, 0.7);
-            --cyan-glow: #00f3ff;
-            --purple-glow: #bd00ff;
-            --green-active: #00ff88;
-            --red-busy: #ff2a5f;
-            --text-main: #f0f4fc;
-            --text-muted: #7e8b9b;
+            --cyan: #00f3ff;
+            --purple: #bd00ff;
+            --green: #00ff88;
+            --red: #ff2a5f;
+            --dark-card: rgba(13, 17, 28, 0.92);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-base);
-            background-image: 
-                radial-gradient(circle at 15% 15%, rgba(0, 243, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(189, 0, 255, 0.08) 0%, transparent 40%);
-            color: var(--text-main);
+            background-color: #06080e;
+            color: #fff;
             font-family: 'Rajdhani', sans-serif;
-            min-height: 100vh;
-            padding-bottom: 30px;
-            overflow-x: hidden;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
         }
 
-        /* Yuqori Header */
-        header {
-            padding: 20px 16px 12px;
+        /* 3D Canvas maydoni */
+        #webgl-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Yuqori HUD boshqaruv paneli */
+        .hud-header {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
             z-index: 10;
-            background: rgba(8, 10, 16, 0.85);
+            pointer-events: none;
         }
 
-        .brand-title {
+        .hud-brand {
             font-family: 'Orbitron', sans-serif;
-            font-size: 19px;
+            font-size: 15px;
             font-weight: 900;
             letter-spacing: 1.5px;
-            background: linear-gradient(90deg, var(--cyan-glow), var(--purple-glow));
+            background: linear-gradient(90deg, var(--cyan), var(--purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
         }
 
-        .live-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            background: rgba(0, 255, 136, 0.1);
-            color: var(--green-active);
-            padding: 4px 10px;
+        .hud-controls-hint {
+            background: var(--dark-card);
+            border: 1px solid rgba(0, 243, 255, 0.3);
             border-radius: 20px;
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            text-transform: uppercase;
-        }
-
-        .pulse-dot {
-            width: 7px;
-            height: 7px;
-            background: var(--green-active);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--green-active);
-            animation: pulse 1.6s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.7; }
-            50% { transform: scale(1.3); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.7; }
-        }
-
-        /* Statistika va Filtrlash */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            padding: 14px 16px;
-        }
-
-        .stat-item {
-            background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 8px 10px;
-            text-align: center;
-        }
-
-        .stat-num {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .stat-label {
+            padding: 5px 12px;
             font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .filters {
-            display: flex;
-            gap: 8px;
-            padding: 6px 16px 14px;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-
-        .filters::-webkit-scrollbar { display: none; }
-
-        .filter-chip {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-muted);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .filter-chip.active {
-            background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(189, 0, 255, 0.2));
-            color: #fff;
-            border-color: var(--cyan-glow);
-            box-shadow: 0 0 12px rgba(0, 243, 255, 0.3);
-        }
-
-        /* 3D Zal Arena Maydoni */
-        .arena-container {
-            perspective: 1000px;
-            padding: 10px 16px;
-        }
-
-        .pc-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            transform-style: preserve-3d;
-        }
-
-        .pc-card {
-            background: var(--card-bg);
-            border-radius: 14px;
-            padding: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-weight: 700;
+            color: var(--cyan);
             backdrop-filter: blur(8px);
-            position: relative;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            transform: translateZ(0);
         }
 
-        .pc-card:active {
-            transform: scale(0.96) translateZ(-5px);
-        }
-
-        .pc-card.free {
-            border-bottom: 3px solid var(--green-active);
-        }
-
-        .pc-card.free:hover {
-            box-shadow: 0 8px 24px rgba(0, 255, 136, 0.18);
-            border-color: rgba(0, 255, 136, 0.4);
-        }
-
-        .pc-card.busy {
-            border-bottom: 3px solid var(--red-busy);
-            opacity: 0.65;
-            filter: grayscale(0.2);
-        }
-
-        .zone-pill {
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 7px;
-            border-radius: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .zone-standart { background: rgba(0, 243, 255, 0.15); color: var(--cyan-glow); }
-        .zone-vip { background: rgba(189, 0, 255, 0.15); color: var(--purple-glow); }
-        .zone-bootcamp { background: rgba(255, 170, 0, 0.15); color: #ffaa00; }
-
-        .pc-header {
+        /* Pastki Holat Legendasi */
+        .hud-legend {
+            position: absolute;
+            top: 60px;
+            left: 14px;
+            z-index: 10;
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .legend-item {
+            display: flex;
             align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .pc-name {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 17px;
+            gap: 5px;
+            font-size: 11px;
             font-weight: 700;
-            color: #fff;
+            background: rgba(10, 14, 23, 0.75);
+            padding: 4px 8px;
+            border-radius: 6px;
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .status-dot {
+        .legend-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
         }
 
-        .free .status-dot { background: var(--green-active); box-shadow: 0 0 6px var(--green-active); }
-        .busy .status-dot { background: var(--red-busy); box-shadow: 0 0 6px var
+        .dot-free { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .dot-busy { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+        /* Kamerani markazlashtirish tugmasi */
+        .btn-reset-cam {
+            position: absolute;
+            bottom: 24px;
+            right: 16px;
+            z-index: 10;
+            background: var(--dark-card);
+            border: 1px solid rgba(0, 243, 255, 0.4);
+            color: var(--cyan);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Tanlangan PC haqida Bottom Sheet (Modal oyna) */
+        .sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .sheet-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: -100%;
+            background: #0d121f;
+            border-top: 2px solid var(--cyan);
+            border-radius: 22px 22px 0 0;
+            padding: 18px 20px 28px;
+            z-index: 101;
+            transition: bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.85);
+        }
+
+        .bottom-sheet.active {
+            bottom: 0;
+        }
+
+        .sheet-handle {
+            width: 36px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 2px;
+            margin: 0 auto 14px;
+        }
+
+        .sheet-title-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .sheet-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .sheet-zone-badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-standart { background: rgba(0, 243, 255, 0.15); color: var(--cyan); }
+        .badge-vip { background: rgba(189, 0, 255, 0.15); color: var(--purple); }
+
+        .sheet-specs {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #8c9ba5;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sheet-calc {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 243, 255, 0.05);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+        }
+
+        .calc-deposit-val {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 17px;
+            color: var(--cyan);
+            font-weight: 800;
+        }
+
+        .btn-confirm {
+            width: 100%;
+            background: linear-gradient(90deg, var(--cyan), #0077ff);
+            border: none;
+            color: #000;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 900;
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 243, 255, 0.35);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud-header">
+        <div class="hud-brand">APEX 3D ARENA</div>
+        <div class="hud-controls-hint">🔄 Barmog'ingiz bilan aylantiring</div>
+    </div>
+
+    <div class="hud-legend">
+        <div class="legend-item"><span class="legend-dot dot-free"></span> Bo'sh</div>
+        <div class="legend-item"><span class="legend-dot dot-busy"></span> Band</div>
+    </div>
+
+    <button class="btn-reset-cam" onclick="resetCamera()">🎯 Markazga</button>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- Modal Oyna -->
+    <div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title-box">
+            <div class="sheet-title" id="sheetPcTitle">PC-01</div>
+            <div class="sheet-zone-badge badge-standart" id="sheetPcZone">STANDART</div>
+        </div>
+        <div class="sheet-specs" id="sheetPcSpecs">Yuklanmoqda...</div>
+        <div class="sheet-calc">
+            <div>
+                <div style="font-size: 12px; color: #8c9ba5;">75% Avans Zalog:</div>
+                <div style="font-size: 10px; color: #556270;">Klubda yolg'on bron bo'lmasligi uchun</div>
+            </div>
+            <div class="calc-deposit-val" id="sheetDepositVal">0 UZS</div>
+        </div>
+        <button class="btn-confirm" onclick="sendBookingToBot()">JOYNI BRON QILISH</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.ready();
+        }
+
+        // --- 1. MA'LUMOTLAR RO'YXATI ---
+        const pcList = [
+            { id: "01", zone: "standart", x: -4, z: -3.5, price: 7000, status: "free", cpu: "i5-12400F", gpu: "RTX 3060 12GB", hz: "165Hz" },
+            { id: "02", zone: "standart", x: 0,  z: -3.5, price: 7000, status: "busy", cpu: "i5-12400F", gpu: "RTX 3060 12GB", hz: "165Hz" },
+            { id: "03", zone: "standart", x: 4,  z: -3.5, price: 7000, status: "free", cpu: "i5-12400F", gpu: "RTX 3060 12GB", hz: "165Hz" },
+            { id: "04", zone: "standart", x: 8,  z: -3.5, price: 7000, status: "free", cpu: "i5-12400F", gpu: "RTX 3060 12GB", hz: "165Hz" },
+            { id: "05", zone: "vip",      x: -4, z: 3.5,  price: 12000, status: "free", cpu: "i7-13700KF", gpu: "RTX 4070 12GB", hz: "280Hz Asus" },
+            { id: "06", zone: "vip",      x: 0,  z: 3.5,  price: 12000, status: "busy", cpu: "i7-13700KF", gpu: "RTX 4070 12GB", hz: "280Hz Asus" },
+            { id: "07", zone: "vip",      x: 4,  z: 3.5,  price: 12000, status: "free", cpu: "i7-13700KF", gpu: "RTX 4070 12GB", hz: "280Hz Asus" },
+            { id: "08", zone: "vip",      x: 8,  z: 3.5,  price: 12000, status: "free", cpu: "i7-13700KF", gpu: "RTX 4070 12GB", hz: "280Hz Asus" }
+        ];
+
+        // --- 2. THREE.JS SAHNA VA KAMERA SOZLAMALARI ---
+        const canvas = document.getElementById('webgl-canvas');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x06080e);
+        scene.fog = new THREE.FogExp2(0x06080e, 0.04);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(2, 9, 14);
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        controls.target.set(2, 0, 0);
+        controls.maxPolarAngle = Math.PI / 2 - 0.05; // Pol ostiga o'tib ketmaslik
+        controls.minDistance = 5;
+        controls.maxDistance = 22;
+
+        // --- 3. YORIG'LIK (LIGHTING) ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 12, 8);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // Neon yorug'lik nuqtalari (Cyberpunk tusi)
+        const cyanNeon = new THREE.PointLight(0x00f3ff, 2, 18);
+        cyanNeon.position.set(-2, 4, 0);
+        scene.add(cyanNeon);
+
+        const purpleNeon = new THREE.PointLight(0xbd00ff, 2, 18);
+        purpleNeon.position.set(6, 4, 0);
+        scene.add(purpleNeon);
+
+        // --- 4. POL VA NEON SETKA (GRID) ---
+        const floorGeo = new THREE.PlaneGeometry(30, 24);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x0a0d17, roughness: 0.8, metalness: 0.2 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        const grid = new THREE.GridHelper(30, 30, 0x00f3ff, 0x1f263b);
+        grid.position.y = 0.01;
+        scene.add(grid);
+
+        // --- 5. 3D KOMPYUTER STOLLARINI YARATISH ---
+        const clickableObjects = [];
+
+        function createDeskSetup(data) {
+            const group = new THREE.Group();
+            group.position.set(data.x, 0, data.z);
+
+            const isFree = data.status === "free";
+            const glowColor = isFree ? 0x00ff88 : 0xff2a5f;
+
+            // 1. Stol yuzasi
+            const deskGeo = new THREE.BoxGeometry(2.4, 0.1, 1.2);
+            const deskMat = new THREE.MeshStandardMaterial({ color: 0x181c26, roughness: 0.4 });
+            const desk = new THREE.Mesh(deskGeo, deskMat);
+            desk.position.y = 1.2;
+            desk.castShadow = true;
+            desk.receiveShadow = true;
+            group.add(desk);
+
+            // Stol oyoqlari
+            const legGeo = new THREE.BoxGeometry(0.08, 1.2, 1.1);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x0d1017, metalness: 0.8 });
+            const leftLeg = new THREE.Mesh(legGeo, legMat);
+            leftLeg.position.set(-1.1, 0.6, 0);
+            group.add(leftLeg);
+
+            const rightLeg = leftLeg.clone();
+            rightLeg.position.set(1.1, 0.6, 0);
+            group.add(rightLeg);
+
+            // 2. Monitor va Nur taratuvchi Ekran
+            const monitorFrameGeo = new THREE.BoxGeometry(1.4, 0.75, 0.05);
+            const monitorFrameMat = new THREE.MeshStandardMaterial({ color: 0x0a0d14 });
+            const monitor = new THREE.Mesh(monitorFrameGeo, monitorFrameMat);
+            monitor.position.set(0, 1.75, -0.2);
+            group.add(monitor);
+
+            // O'yin monitorining ekrani (Emissive nur)
+            const screenGeo = new THREE.PlaneGeometry(1.3, 0.68);
+            const screenMat = new THREE.MeshStandardMaterial({
+                color: glowColor,
+                emissive: glowColor,
+                emissiveIntensity: 0.85,
+                roughness: 0.2
+            });
+            const screen = new THREE.Mesh(screenGeo, screenMat);
+            screen.position.set(0, 1.75, -0.17);
+            group.add(screen);
+
+            // Monitor oyog'i
+            const standGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.45);
+            const standMat = new THREE.MeshStandardMaterial({ color: 0x0a0d14 });
+            const stand = new THREE.Mesh(standGeo, standMat);
+            stand.position.set(0, 1.45, -0.2);
+            group.add(stand);
+
+            // 3. RGB Keys (Tizim bloki)
+            const pcCaseGeo = new THREE.BoxGeometry(0.35, 0.7, 0.6);
+            const pcCaseMat = new THREE.MeshStandardMaterial({
+                color: 0x111622,
+                emissive: glowColor,
+                emissiveIntensity: 0.25
+            });
+            const pcCase = new THREE.Mesh(pcCaseGeo, pcCaseMat);
+            pcCase.position.set(0.9, 1.6, -0.1);
+            group.add(pcCase);
+
+            // 4. Kiber Kreslo (Gaming Chair)
+            const chairGroup = new THREE.Group();
+            chairGroup.position.set(0, 0, 0.6);
+
+            // O'rindiq
+            const seatGeo = new THREE.BoxGeometry(0.7, 0.1, 0.7);
+            const seatMat = new THREE.MeshStandardMaterial({ color: 0x1e2433, roughness: 0.5 });
+            const seat = new THREE.Mesh(seatGeo, seatMat);
+            seat.position.y = 0.8;
+            chairGroup.add(seat);
+
+            // Suyanchiq
+            const backGeo = new THREE.BoxGeometry(0.65, 0.9, 0.1);
+            const backMat = new THREE.MeshStandardMaterial({
+                color: data.zone === "vip" ? 0xbd00ff : 0x00f3ff,
+                roughness: 0.6
+            });
+            const back = new THREE.Mesh(backGeo, backMat);
+            back.position.set(0, 1.3, 0.3);
+            chairGroup.add(back);
+
+            // Kreslo oyog'i
+            const chairLegGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.8);
+            const chairLeg = new THREE.Mesh(chairLegGeo, legMat);
+            chairLeg.position.y = 0.4;
+            chairGroup.add(chairLeg);
+
+            group.add(chairGroup);
+
+            // Bosishni aniqlash uchun stol ustidagi ko'rinmas oyna (Hitbox)
+            const hitGeo = new THREE.BoxGeometry(2.5, 1.8, 1.8);
+            const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+            const hitBox = new THREE.Mesh(hitGeo, hitMat);
+            hitBox.position.set(0, 1.4, 0.2);
+            hitBox.userData = data;
+            group.add(hitBox);
+
+            clickableObjects.push(hitBox);
+            scene.add(group);
+        }
+
+        pcList.forEach(createDeskSetup);
+
+        // --- 6. BOSISH (RAYCASTING) VA MODAL OYNA ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let selectedPcData = null;
+
+        window.addEventListener('pointerdown', (e) => {
+            // Ekranga tegish koordinatalari
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(clickableObjects);
+
+            if (intersects.length > 0) {
+                const pc = intersects[0].object.userData;
+                openSheet(pc);
+            }
+        });
+
+        function openSheet(pc) {
+            selectedPcData = pc;
+
+            if (pc.status !== "free") {
+                if (tg?.showAlert) tg.showAlert(`PC-${pc.id} hozirda band! Boshqa bo'sh joyni tanlang.`);
+                else alert(`PC-${pc.id} band!`);
+                return;
+            }
+
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            const deposit = Math.round(pc.price * 0.75);
+
+            document.getElementById('sheetPcTitle').innerText = `PC-${pc.id}`;
+            const zoneEl = document.getElementById('sheetPcZone');
+            zoneEl.innerText = pc.zone.toUpperCase();
+            zoneEl.className = `sheet-zone-badge badge-${pc.zone}`;
+
+            document.getElementById('sheetPcSpecs').innerHTML = `
+                ⚡️ <b>CPU:</b> ${pc.cpu}<br>
+                🎮 <b>GPU:</b> ${pc.gpu}<br>
+                🖥 <b>Monitor:</b> ${pc.hz}<br>
+                💰 <b>Tarif:</b> ${pc.price.toLocaleString()} UZS / soat
+            `;
+            document.getElementById('sheetDepositVal').innerText = `${deposit.toLocaleString()} UZS`;
+
+            document.getElementById('overlay').classList.add('active');
+            document.getElementById('bottomSheet').classList.add('active');
+        }
+
+        function closeSheet() {
+            document.getElementById('overlay').classList.remove('active');
+            document.getElementById('bottomSheet').classList.remove('active');
+        }
+
+        function resetCamera() {
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            controls.target.set(2, 0, 0);
+            camera.position.set(2, 9, 14);
+        }
+
+        function sendBookingToBot() {
+            if (!selectedPcData) return;
+
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    action: "book_3d",
+                    pc_id: selectedPcData.id,
+                    price: selectedPcData.price
+                }));
+            } else {
+                alert(`PC-${selectedPcData.id} bron qilish so'rovi qabul qilindi!`);
+                closeSheet();
+            }
+        }
+
+        // --- 7. ANIMATSIYA VA O'LCHAM O'ZGARISHI ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
